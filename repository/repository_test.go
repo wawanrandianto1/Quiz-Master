@@ -1,191 +1,119 @@
-package repository
+package repository_test
 
 import (
-	"fmt"
-	"testing"
+	"quiz_master/repository"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-func TestWritejson(t *testing.T) {
-	datas := []Quiz{
-		{
-			Id:       1,
-			Question: "How many letters are there in the English alphabet?",
-			Answer:   26,
-		},
-		{
-			Id:       2,
-			Question: "How many vowels are there in the English alphabet?",
-			Answer:   5,
-		},
-	}
-
-	err := Writejson(datas)
-	if err != nil {
-		t.Errorf("cant write json file")
-	}
-}
-
-func TestClearjson(t *testing.T) {
-	err := Clearjson()
-	if err != nil {
-		t.Errorf("cant clear json file")
-	}
-}
-
-func TestFilldefaultjson(t *testing.T) {
-	err := Filldefaultjson()
-	if err != nil {
-		t.Errorf("cant fill json file")
-	}
-}
-
-func TestFetch(t *testing.T) {
-	_, err := Fetch()
-	if err != nil {
-		t.Errorf("error reading json file")
-	}
+type testCaseFindIndex struct {
+	Index    int    // index
+	Expected int    // expected
+	Message  string // message
 }
 
 type testCaseGetByID struct {
-	arg1   int
-	errors bool
-}
-
-func TestGetByID(t *testing.T) {
-	cases := []testCaseGetByID{
-		{1, false},
-		{2, false},
-		{3, false},
-		{99, true}, // if not found dont fail the test, set false to fail the test
-	}
-
-	for _, tc := range cases {
-		strMsg := "found"
-		if tc.errors {
-			strMsg = "not found"
-		}
-		t.Run(fmt.Sprintf("Get data from Id = %d, expect %v", tc.arg1, strMsg), func(t *testing.T) {
-			_, err := GetByID(tc.arg1)
-			if err != nil && !tc.errors {
-				strErr := "found, but got 'not found'"
-				if tc.errors {
-					strErr = "not found, but got 'found'"
-				}
-				t.Errorf("Expected Id '%d', '%v'", tc.arg1, strErr)
-			}
-		})
-	}
+	Id      int
+	Status  bool
+	Message string // message
 }
 
 type testCaseStore struct {
-	arg1   Quiz
-	errors bool
+	Quizdata repository.Quiz
+	Status   bool
+	Message  string // message
 }
 
-func TestStore(t *testing.T) {
-	TestWritejson(t)
+var _ = Describe("Repository", func() {
 
-	// store test
-	cases := []testCaseStore{
-		{
-			Quiz{
-				Id:       6,
-				Question: "1 + 1 = ?",
-				Answer:   2,
-			},
-			false, // id not exists, can store
-		},
-		{
-			Quiz{
-				Id:       3,
-				Question: "1 + 1 = ?",
-				Answer:   2,
-			},
-			true, // id exists, cannot store
-		},
-	}
+	var (
+		err  error
+		data []repository.Quiz
+		// tcGetId []testCaseGetByID
+		// tcStore []testCaseStore
+	)
 
-	for _, tc := range cases {
-		strMsg := "new data"
-		if tc.errors {
-			strMsg = "exists"
-		}
-		t.Run(fmt.Sprintf("Store id %d, expected %v", tc.arg1.Id, strMsg), func(t *testing.T) {
-			err := Store(&tc.arg1)
-			if err != nil && !tc.errors {
-				strErr := "new data, can insert"
-				if tc.errors {
-					strErr = "data exists, can't insert"
-				}
-				t.Errorf("Expected Store Id '%d', '%v'", int(tc.arg1.Id), strErr)
-			}
+	BeforeEach(func() {
+		data = append(data, repository.Quiz{
+			Id:       1,
+			Question: "How many letters are there in the English alphabet?",
+			Answer:   26,
+		}, repository.Quiz{
+			Id:       2,
+			Question: "How many vowels are there in the English alphabet?",
+			Answer:   5,
+		}, repository.Quiz{
+			Id:       4,
+			Question: "1 + 1 = ?",
+			Answer:   2,
+		}, repository.Quiz{
+			Id:       3,
+			Question: "2 + 2 = ?",
+			Answer:   4,
 		})
-	}
-}
 
-func TestUpdate(t *testing.T) {
-	Filldefaultjson()
+		repository.Writejson(data)
+	})
 
-	cases := []testCaseStore{
-		{
-			Quiz{
-				Id:       3,
-				Question: "3 + 1 = ?",
-				Answer:   4,
-			},
-			false, // id exists, can update
-		},
-		{
-			Quiz{
-				Id:       5,
-				Question: "1 + 1 = ?",
-				Answer:   2,
-			},
-			true, // id not exists, cannot update
-		},
-	}
+	AfterEach(func() {
+		repository.Clearjson()
+	})
 
-	for _, tc := range cases {
-		strMsg := "exists"
-		if tc.errors {
-			strMsg = "new data"
+	Describe("TestFindIndex", func() {
+		indexing := []testCaseFindIndex{
+			{Index: 1, Expected: 0, Message: "try find index ID: 1, expect: 0"},
+			{Index: 2, Expected: 1, Message: "try find index ID: 2, expect: 1"},
+			{Index: 99, Expected: -1, Message: "try find index ID: 99, expect: -1"},
 		}
-		t.Run(fmt.Sprintf("Update id %d, expected %v", tc.arg1.Id, strMsg), func(t *testing.T) {
-			err := Update(&tc.arg1)
-			if err != nil && !tc.errors {
-				strErr := "data exists, update-yes"
-				if tc.errors {
-					strErr = "new data, update-no"
-				}
-				t.Errorf("Expected Update Id '%d', '%v'", int(tc.arg1.Id), strErr)
-			}
-		})
-	}
-}
 
-func TestDelete(t *testing.T) {
-	Filldefaultjson()
-
-	cases := []testCaseGetByID{
-		{1, false}, // id exists, delete-yes
-		{2, false}, // id exists, delete-yes
-		{99, true}, // id not exists, delete-no
-	}
-
-	for _, tc := range cases {
-		strMsg := "delete-yes"
-		if tc.errors {
-			strMsg = "delete-no"
+		for _, tc := range indexing {
+			It(tc.Message, func() {
+				result := repository.FindIndex(tc.Index, data)
+				Expect(result).To(Equal(tc.Expected))
+			})
 		}
-		t.Run(fmt.Sprintf("Delete id: %d, expected %v", tc.arg1, strMsg), func(t *testing.T) {
-			err := Delete(tc.arg1)
-			if err != nil && !tc.errors {
-				strErr := "data exists, delete-yes"
-				if tc.errors {
-					strErr = "new data, delete-no"
-				}
-				t.Errorf("Expected Delete Id: '%d', '%v'", int(tc.arg1), strErr)
-			}
+	})
+
+	Describe("TestFetchingData", func() {
+		BeforeEach(func() {
+			data, err = repository.Fetch()
 		})
-	}
-}
+		It("have list data", func() {
+			Expect(len(data)).NotTo(Equal(0))
+		})
+	})
+
+	Describe("TestGetByID", func() {
+		cases := []testCaseGetByID{
+			{Id: 1, Status: true, Message: "try GetID: 1, expect: true"},
+			{Id: 2, Status: true, Message: "try GetID: 2, expect: true"},
+			{Id: 99, Status: false, Message: "try GetID: 3, expect: false"},
+		}
+
+		for _, tc := range cases {
+			It(tc.Message, func() {
+				_, err = repository.GetByID(tc.Id)
+				result := err == nil
+				Expect(result).To(Equal(tc.Status))
+			})
+		}
+	})
+
+	Describe("TestStoreData", func() {
+		cases := []testCaseStore{
+			{Quizdata: 1, Status: true, Message: "try GetID: 1, expect: true"},
+			{Quizdata: 2, Status: true, Message: "try GetID: 2, expect: true"},
+			{Quizdata: 99, Status: false, Message: "try GetID: 3, expect: false"},
+		}
+
+		for _, tc := range cases {
+			It(tc.Message, func() {
+				_, err = repository.GetByID(tc.Id)
+				result := err == nil
+				Expect(result).To(Equal(tc.Status))
+			})
+		}
+	})
+
+})

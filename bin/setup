@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm bin/quiz_master
+rm bin/quiz_master 2> /dev/null
 set -e
 go mod download 
 go test -v ./...

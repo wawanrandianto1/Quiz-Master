@@ -2,12 +2,30 @@ package usecase
 
 import (
 	"fmt"
-	"quiz_master/repository"
 	"testing"
 )
 
+type testCaseCreateQuestion struct {
+	arg1   string // id
+	arg2   string // question
+	arg3   string // answer
+	errors bool   // data exist (true) or not (false)
+}
+
+type testCaseAnswerQuestion struct {
+	arg1   string // id
+	arg2   string // answer
+	answer string // Correct! or Wrong Answer!
+	errors bool   // data exist (true) or not (false)
+}
+
+type testCaseDeleteQuestion struct {
+	arg1   string // id question
+	errors bool   // data exist (true) or not (false)
+}
+
 func TestQuestionList(t *testing.T) {
-	repository.Filldefaultjson()
+	// repository.Filldefaultjson()
 
 	err := QuestionList()
 	if err != nil {
@@ -21,7 +39,7 @@ type testCaseSingleQuestion struct {
 }
 
 func TestQuestionSingle(t *testing.T) {
-	repository.Filldefaultjson()
+	// repository.Filldefaultjson()
 
 	cases := []testCaseSingleQuestion{
 		{"1", true},
@@ -47,47 +65,34 @@ func TestQuestionSingle(t *testing.T) {
 	}
 }
 
-type testCaseDeleteQuestion struct {
-	arg1   string // id question
-	errors bool   // data exist (true) or not (false)
-}
+func TestAnswerQuestion(t *testing.T) {
+	// repository.Filldefaultjson()
 
-func TestDeleteQuestion(t *testing.T) {
-	repository.Filldefaultjson()
-
-	cases := []testCaseDeleteQuestion{
-		{"1", true},
-		{"2", true},
-		{"99", false},
+	cases := []testCaseAnswerQuestion{
+		{"2", "five", "Correct!", true},      // exist, can answer, correct answer (string)
+		{"2", "5", "Correct!", true},         // exist, can answer, correct answer (int)
+		{"1", "two", "Wrong Answer!", true},  // exist, can answer, wrong answer
+		{"99", "0", "data not found", false}, // not-exist , forbidden to answer
 	}
 
 	for _, tc := range cases {
-		strMsg := "not found"
-		if tc.errors {
-			strMsg = "found"
-		}
-		t.Run(fmt.Sprintf("Delete data from Id = %v, expect %v", tc.arg1, strMsg), func(t *testing.T) {
-			err := DeleteQuestion([]string{tc.arg1})
-			if err != nil && tc.errors {
-				strErr := "not found, but got 'found'"
+		t.Run(fmt.Sprintf("Asnwer data with Id = %v, expect %v ", tc.arg1, tc.answer), func(t *testing.T) {
+			msg, err := AnswerQuestion([]string{tc.arg1, tc.arg2})
+			if err != nil {
 				if tc.errors {
-					strErr = "found, but got 'not found'"
+					t.Errorf("Expected Answer Id '%v' data not-exists, got 'success'", tc.arg1)
 				}
-				t.Errorf("Expected Delete Id '%v', '%v'", tc.arg1, strErr)
+			} else {
+				if msg != tc.answer {
+					t.Errorf("Expected Answer Id '%v' '%v', got '%v'", tc.arg1, tc.answer, msg)
+				}
 			}
 		})
 	}
 }
 
-type testCaseCreateQuestion struct {
-	arg1   string // id
-	arg2   string // question
-	arg3   string // answer
-	errors bool   // data exist (true) or not (false)
-}
-
 func TestCreateQuestion(t *testing.T) {
-	repository.Filldefaultjson()
+	// repository.Filldefaultjson()
 
 	cases := []testCaseCreateQuestion{
 		{"99", "2 % 2 = ?", "0", false}, // new data
@@ -114,7 +119,7 @@ func TestCreateQuestion(t *testing.T) {
 }
 
 func TestUpdateQuestion(t *testing.T) {
-	repository.Filldefaultjson()
+	// repository.Filldefaultjson()
 
 	cases := []testCaseCreateQuestion{
 		{"1", "five", "5", true},        // exist, can update
@@ -140,34 +145,28 @@ func TestUpdateQuestion(t *testing.T) {
 	}
 }
 
-type testCaseAnswerQuestion struct {
-	arg1   string // id
-	arg2   string // answer
-	answer string // Correct! or Wrong Answer!
-	errors bool   // data exist (true) or not (false)
-}
+func TestDeleteQuestion(t *testing.T) {
+	// repository.Filldefaultjson()
 
-func TestAnswerQuestion(t *testing.T) {
-	repository.Filldefaultjson()
-
-	cases := []testCaseAnswerQuestion{
-		{"2", "five", "Correct!", true},      // exist, can answer, correct answer (string)
-		{"2", "5", "Correct!", true},         // exist, can answer, correct answer (int)
-		{"1", "two", "Wrong Answer!", true},  // exist, can answer, wrong answer
-		{"99", "0", "data not found", false}, // not-exist , forbidden to answer
+	cases := []testCaseDeleteQuestion{
+		{"1", true},
+		{"2", true},
+		{"99", false},
 	}
 
 	for _, tc := range cases {
-		t.Run(fmt.Sprintf("Asnwer data with Id = %v, expect %v ", tc.arg1, tc.answer), func(t *testing.T) {
-			msg, err := AnswerQuestion([]string{tc.arg1, tc.arg2})
-			if err != nil {
+		strMsg := "not found"
+		if tc.errors {
+			strMsg = "found"
+		}
+		t.Run(fmt.Sprintf("Delete data from Id = %v, expect %v", tc.arg1, strMsg), func(t *testing.T) {
+			err := DeleteQuestion([]string{tc.arg1})
+			if err != nil && tc.errors {
+				strErr := "not found, but got 'found'"
 				if tc.errors {
-					t.Errorf("Expected Answer Id '%v' data not-exists, got 'success'", tc.arg1)
+					strErr = "found, but got 'not found'"
 				}
-			} else {
-				if msg != tc.answer {
-					t.Errorf("Expected Answer Id '%v' '%v', got '%v'", tc.arg1, tc.answer, msg)
-				}
+				t.Errorf("Expected Delete Id '%v', '%v'", tc.arg1, strErr)
 			}
 		})
 	}

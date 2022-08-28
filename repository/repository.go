@@ -45,34 +45,6 @@ func Clearjson() error {
 	return os.WriteFile(dataPath, jsonString, os.ModePerm)
 }
 
-func Filldefaultjson() error {
-	datas := []Quiz{
-		{
-			Id:       1,
-			Question: "How many letters are there in the English alphabet?",
-			Answer:   26,
-		},
-		{
-			Id:       2,
-			Question: "How many vowels are there in the English alphabet?",
-			Answer:   5,
-		},
-		{
-			Id:       4,
-			Question: "1 + 1 = ?",
-			Answer:   2,
-		},
-		{
-			Id:       3,
-			Question: "2 + 2 = ?",
-			Answer:   4,
-		},
-	}
-
-	err := Writejson(datas)
-	return err
-}
-
 func Writejson(values []Quiz) error {
 	jsonString, err := json.Marshal(values)
 	if err != nil {
