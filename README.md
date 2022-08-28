@@ -1,34 +1,19 @@
 # Quiz Master
 
-### Quiz master is simple game using bash script and golang. 
+### Quiz master is simple game using golang interactive shell. 
 <br>
 <br>
  
 ## Installation Instructions
-1. go to main user directory in linux
- 
-       cd ~
- 
-2. clone the repository
+1. clone the repository
   
-       git clone https://github.com/wawanrandianto1/Quiz-Master.git ~/quiz_master
+       git clone https://github.com/wawanrandianto1/Quiz-Master.git
   
-   this will clone repository to "Quiz-Master" folder
- 
-3. create bin folder, and go inside bin folder
- 
-       mkdir bin
-       cd bin/
- 
-4. copy 2 script executable file in bash_script folder to bin folder and add permission to executable file
- 
-       sudo chmod 755 setup quiz_master
- 
-5. run command, to compile the code
+2. run command, to compile the code
 
        bin/setup
 
-6. last step, run command and enjoy the quiz
+3. last step, run command and enjoy the quiz
 
        bin/quiz_master
 
@@ -46,4 +31,4 @@
 
 > $ exit
 
-- see "help" command for better experience
+- see "help" command
