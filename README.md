@@ -44,4 +44,7 @@
 
 - see "help" command
 
+<br>
+# Example
+
 ![Screenshot](peek2.gif)
