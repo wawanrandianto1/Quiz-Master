@@ -44,3 +44,5 @@
 > $ exit
 
 - see "help" command
+
+![Screenshot](peek2.gif)
