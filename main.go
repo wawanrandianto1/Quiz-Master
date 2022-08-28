@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"quiz_master/usecase"
-	"strings"
 )
 
 func main() {
@@ -17,7 +16,7 @@ func main() {
 	for i := 0; i < count; {
 		fmt.Print("$ ")
 		text, _ := reader.ReadString('\n')
-		command := strings.Fields(text)
+		command := usecase.DefineInput(text)
 		if len(command) > 0 {
 			switch command[0] {
 			case "create_question":

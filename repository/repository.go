@@ -15,8 +15,8 @@ var (
 )
 
 var (
-	ErrNotFound      = errors.New("data not found")
-	ErrConflict      = errors.New("data already exist")
+	ErrNotFound      = errors.New("question not found")
+	ErrConflict      = errors.New("question already exist")
 	ErrBadParamInput = errors.New("param is not valid")
 )
 

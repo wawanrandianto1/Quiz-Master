@@ -6,14 +6,26 @@
  
 ## Installation Instructions
 1. clone the repository
-  
+
        git clone https://github.com/wawanrandianto1/Quiz-Master.git
+
+2. install ginkgo executable under $GOBIN
+
+       go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo
+
+   set bash command to $GOBIN
+
+       echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.bash_profile
+
+   renew bash command
+
+       source ~/.bash_profile
   
-2. run command, to compile the code
+3. run command, to compile the code
 
        bin/setup
 
-3. last step, run command and enjoy the quiz
+4. last step, run command and enjoy the quiz
 
        bin/quiz_master
 

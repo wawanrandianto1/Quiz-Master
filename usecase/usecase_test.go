@@ -1,173 +1,255 @@
-package usecase
+package usecase_test
 
 import (
-	"fmt"
-	"testing"
+	"quiz_master/repository"
+	"quiz_master/usecase"
+	"strconv"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-type testCaseCreateQuestion struct {
-	arg1   string // id
-	arg2   string // question
-	arg3   string // answer
-	errors bool   // data exist (true) or not (false)
-}
+var _ = Describe("Usecase", func() {
 
-type testCaseAnswerQuestion struct {
-	arg1   string // id
-	arg2   string // answer
-	answer string // Correct! or Wrong Answer!
-	errors bool   // data exist (true) or not (false)
-}
-
-type testCaseDeleteQuestion struct {
-	arg1   string // id question
-	errors bool   // data exist (true) or not (false)
-}
-
-func TestQuestionList(t *testing.T) {
-	// repository.Filldefaultjson()
-
-	err := QuestionList()
-	if err != nil {
-		t.Errorf("cant get question list")
-	}
-}
-
-type testCaseSingleQuestion struct {
-	arg1   string // id question
-	errors bool   // data exist (true) or not (false)
-}
-
-func TestQuestionSingle(t *testing.T) {
-	// repository.Filldefaultjson()
-
-	cases := []testCaseSingleQuestion{
-		{"1", true},
-		{"2", true},
-		{"99", false},
+	type testCaseInput struct {
+		Text       string
+		FindLength int
+		Message    string
 	}
 
-	for _, tc := range cases {
-		strMsg := "not found"
-		if tc.errors {
-			strMsg = "found"
+	type testCaseSingleQuestion struct {
+		Id      string
+		Status  bool
+		Message string
+	}
+
+	type testCaseCreateQuestion struct {
+		Quiz    repository.Quiz
+		Status  bool
+		Message string
+	}
+
+	type testCaseAnswerQuestion struct {
+		Id      string
+		Answer  string
+		Status  string // Correct! or Wrong Answer!
+		Message string
+	}
+
+	var (
+		err  error
+		data []repository.Quiz
+	)
+
+	Describe("TestDefineInput", func() {
+		cases := []testCaseInput{
+			{
+				Text:       "help",
+				FindLength: 1,
+				Message:    "try input: 'help' length: 1",
+			},
+			{
+				Text:       "questions",
+				FindLength: 1,
+				Message:    "try input: 'questions' length: 1",
+			},
+			{
+				Text:       "question 1",
+				FindLength: 2,
+				Message:    "try input: 'question 1' length: 2",
+			},
+			{
+				Text:       "create_question 1 \"How many letters are in the English alphabet?\" 26",
+				FindLength: 4,
+				Message:    "try input: 'create_question 1 \"How many letters are in the English alphabet?\" 26' length: 4",
+			},
+			{
+				Text:       "update_question 1 \"How many letters are in the English alphabet?\" 26",
+				FindLength: 4,
+				Message:    "try input: 'update_question 1 \"How many letters are in the English alphabet?\" 26' length: 4",
+			},
+			{
+				Text:       "answer_question 1 26",
+				FindLength: 3,
+				Message:    "try input: 'answer_question 1 26' length: 3",
+			},
+			{
+				Text:       "delete_question 1",
+				FindLength: 2,
+				Message:    "try input: 'delete_question 1' length: 3",
+			},
 		}
-		t.Run(fmt.Sprintf("Get data from Id = %v, expect %v", tc.arg1, strMsg), func(t *testing.T) {
-			err := QuestionSingle([]string{tc.arg1})
-			if err != nil && tc.errors {
-				strErr := "not found, but got 'found'"
-				if tc.errors {
-					strErr = "found, but got 'not found'"
-				}
-				t.Errorf("Expected Get Id '%v', '%v'", tc.arg1, strErr)
-			}
-		})
-	}
-}
 
-func TestAnswerQuestion(t *testing.T) {
-	// repository.Filldefaultjson()
-
-	cases := []testCaseAnswerQuestion{
-		{"2", "five", "Correct!", true},      // exist, can answer, correct answer (string)
-		{"2", "5", "Correct!", true},         // exist, can answer, correct answer (int)
-		{"1", "two", "Wrong Answer!", true},  // exist, can answer, wrong answer
-		{"99", "0", "data not found", false}, // not-exist , forbidden to answer
-	}
-
-	for _, tc := range cases {
-		t.Run(fmt.Sprintf("Asnwer data with Id = %v, expect %v ", tc.arg1, tc.answer), func(t *testing.T) {
-			msg, err := AnswerQuestion([]string{tc.arg1, tc.arg2})
-			if err != nil {
-				if tc.errors {
-					t.Errorf("Expected Answer Id '%v' data not-exists, got 'success'", tc.arg1)
-				}
-			} else {
-				if msg != tc.answer {
-					t.Errorf("Expected Answer Id '%v' '%v', got '%v'", tc.arg1, tc.answer, msg)
-				}
-			}
-		})
-	}
-}
-
-func TestCreateQuestion(t *testing.T) {
-	// repository.Filldefaultjson()
-
-	cases := []testCaseCreateQuestion{
-		{"99", "2 % 2 = ?", "0", false}, // new data
-		{"98", "3 - 2 = ?", "1", false}, // new data
-		{"1", "five", "5", true},        // duplicate, cant insert
-	}
-
-	for _, tc := range cases {
-		strMsg := "success"
-		if tc.errors {
-			strMsg = "fail"
+		for _, tc := range cases {
+			It(tc.Message, func() {
+				result := usecase.DefineInput(tc.Text)
+				Expect(len(result)).To(Equal(tc.FindLength))
+			})
 		}
-		t.Run(fmt.Sprintf("Create data with Id = %v, expect %v", tc.arg1, strMsg), func(t *testing.T) {
-			err := CreateQuestion([]string{tc.arg1, tc.arg2, tc.arg3})
-			if err != nil && !tc.errors {
-				strErr := "got 'fail'"
-				if tc.errors {
-					strErr = "got 'success'"
-				}
-				t.Errorf("Expected Create Id '%v', '%v'", tc.arg1, strErr)
-			}
+	})
+
+	BeforeEach(func() {
+		data = append(data, repository.Quiz{
+			Id:       1,
+			Question: "How many letters are there in the English alphabet?",
+			Answer:   26,
+		}, repository.Quiz{
+			Id:       2,
+			Question: "How many vowels are there in the English alphabet?",
+			Answer:   5,
 		})
-	}
-}
+		repository.Writejson(data)
+	})
 
-func TestUpdateQuestion(t *testing.T) {
-	// repository.Filldefaultjson()
+	AfterEach(func() {
+		repository.Clearjson()
+	})
 
-	cases := []testCaseCreateQuestion{
-		{"1", "five", "5", true},        // exist, can update
-		{"2", "two", "2", true},         // exist, can update
-		{"99", "2 % 2 = ?", "0", false}, // new data , no-update
-	}
+	Describe("TestGetQuestionList", func() {
+		It("Question list work", func() {
+			err = usecase.QuestionList()
+			Expect(err).To(BeNil())
+		})
+	})
 
-	for _, tc := range cases {
-		strMsg := "fail"
-		if tc.errors {
-			strMsg = "success"
+	Describe("TestGetQuestionSingle", func() {
+		cases := []testCaseSingleQuestion{
+			{Id: "1", Status: true, Message: "try GetID: 1, data exist, expect: true"},
+			{Id: "2", Status: true, Message: "try GetID: 2, data exist, expect: true"},
+			{Id: "99", Status: false, Message: "try GetID: 99, new data, expect: false"},
 		}
-		t.Run(fmt.Sprintf("Update data with Id = %v, expect %v", tc.arg1, strMsg), func(t *testing.T) {
-			err := UpdateQuestion([]string{tc.arg1, tc.arg2, tc.arg3})
-			if err != nil && tc.errors {
-				strErr := "got 'success'"
-				if tc.errors {
-					strErr = "got 'fail'"
-				}
-				t.Errorf("Expected Update Id '%v', '%v'", tc.arg1, strErr)
-			}
-		})
-	}
-}
 
-func TestDeleteQuestion(t *testing.T) {
-	// repository.Filldefaultjson()
-
-	cases := []testCaseDeleteQuestion{
-		{"1", true},
-		{"2", true},
-		{"99", false},
-	}
-
-	for _, tc := range cases {
-		strMsg := "not found"
-		if tc.errors {
-			strMsg = "found"
+		for _, tc := range cases {
+			It(tc.Message, func() {
+				err = usecase.QuestionSingle([]string{tc.Id})
+				result := err == nil
+				Expect(result).To(Equal(tc.Status))
+			})
 		}
-		t.Run(fmt.Sprintf("Delete data from Id = %v, expect %v", tc.arg1, strMsg), func(t *testing.T) {
-			err := DeleteQuestion([]string{tc.arg1})
-			if err != nil && tc.errors {
-				strErr := "not found, but got 'found'"
-				if tc.errors {
-					strErr = "found, but got 'not found'"
-				}
-				t.Errorf("Expected Delete Id '%v', '%v'", tc.arg1, strErr)
-			}
-		})
-	}
-}
+	})
+
+	Describe("TestDeleteQuestion", func() {
+		cases := []testCaseSingleQuestion{
+			{Id: "1", Status: true, Message: "try GetID: 1, data exist, expect: true"},
+			{Id: "2", Status: true, Message: "try GetID: 2, data exist, expect: true"},
+			{Id: "99", Status: false, Message: "try GetID: 99, new data, expect: false"},
+		}
+
+		for _, tc := range cases {
+			It(tc.Message, func() {
+				err = usecase.DeleteQuestion([]string{tc.Id})
+				result := err == nil
+				Expect(result).To(Equal(tc.Status))
+			})
+		}
+	})
+
+	Describe("TestCreateQuestion", func() {
+		cases := []testCaseCreateQuestion{
+			{
+				Quiz: repository.Quiz{
+					Id:       99,
+					Question: "1 + 1 = ?",
+					Answer:   2,
+				},
+				Status:  true,
+				Message: "create ID: 99, new data, expect: true",
+			},
+			{
+				Quiz: repository.Quiz{
+					Id:       1,
+					Question: "1 + 1 = ?",
+					Answer:   2,
+				},
+				Status:  false,
+				Message: "create ID: 1, data exists (duplicate), expect: false",
+			},
+		}
+
+		for _, tc := range cases {
+			It(tc.Message, func() {
+				new_id := strconv.Itoa(tc.Quiz.Id)
+				new_answer := strconv.Itoa(tc.Quiz.Answer)
+				err = usecase.CreateQuestion([]string{new_id, tc.Quiz.Question, new_answer})
+				result := err == nil
+				Expect(result).To(Equal(tc.Status))
+			})
+		}
+	})
+
+	Describe("TestUpdateQuestion", func() {
+		cases := []testCaseCreateQuestion{
+			{
+				Quiz: repository.Quiz{
+					Id:       1,
+					Question: "1 + 1 = ?",
+					Answer:   2,
+				},
+				Status:  true,
+				Message: "update ID: 1, data exists, expect: true",
+			},
+			{
+				Quiz: repository.Quiz{
+					Id:       99,
+					Question: "1 + 1 = ?",
+					Answer:   2,
+				},
+				Status:  false,
+				Message: "update ID: 1, new data, expect: false",
+			},
+		}
+
+		for _, tc := range cases {
+			It(tc.Message, func() {
+				new_id := strconv.Itoa(tc.Quiz.Id)
+				new_answer := strconv.Itoa(tc.Quiz.Answer)
+				err = usecase.UpdateQuestion([]string{new_id, tc.Quiz.Question, new_answer})
+				result := err == nil
+				Expect(result).To(Equal(tc.Status))
+			})
+		}
+	})
+
+	Describe("TestAnswerQuestion", func() {
+		cases := []testCaseAnswerQuestion{
+			{
+				Id:      "1",
+				Answer:  "26",
+				Status:  "Correct!",
+				Message: "Answer ID: 1, data exists, expect: success",
+			},
+			{
+				Id:      "2",
+				Answer:  "5",
+				Status:  "Correct!",
+				Message: "Answer ID: 2, data exists, expect: success",
+			},
+			{
+				Id:      "2",
+				Answer:  "five",
+				Status:  "Correct!",
+				Message: "Answer ID: 2, data exists, expect: success",
+			},
+			{
+				Id:      "1",
+				Answer:  "7",
+				Status:  "Wrong Answer!",
+				Message: "Answer ID: 1, data exists, expect: fail",
+			},
+			{
+				Id:      "99",
+				Answer:  "7",
+				Status:  "Wrong Answer!",
+				Message: "Answer ID: 99, new data, expect: fail",
+			},
+		}
+
+		for _, tc := range cases {
+			It(tc.Message, func() {
+				result, _ := usecase.AnswerQuestion([]string{tc.Id, tc.Answer})
+				Expect(result).To(Equal(tc.Status))
+			})
+		}
+	})
+
+})

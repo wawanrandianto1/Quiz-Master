@@ -3,15 +3,38 @@ package usecase
 import (
 	"fmt"
 	"quiz_master/repository"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/divan/num2words"
 )
+
+func DefineInput(txt string) []string {
+	var arr []string
+	splitstring := strings.Fields(txt)
+	if len(splitstring) <= 2 {
+		arr = splitstring
+	} else {
+		arr = append(arr, splitstring[0], splitstring[1])
+		// re := regexp.MustCompile(`(\w{4,})( )?(\d+)?( )?("[^"]+")?( )?(\d+)?`)
+		re := regexp.MustCompile(`"[^"]+"`)
+		newStrs := re.FindAllString(txt, -1)
+		if len(newStrs) > 0 {
+			s := newStrs[0]
+			arr = append(arr, s[1:len(s)-1])
+		}
+		lastIndex := len(splitstring) - 1
+		arr = append(arr, splitstring[lastIndex])
+	}
+	return arr
+}
 
 func QuestionList() error {
 	data, err := repository.Fetch()
 	if err != nil {
 		fmt.Println(err)
+		fmt.Println()
 		return err
 	}
 
@@ -27,12 +50,14 @@ func QuestionSingle(inputs []string) error {
 	id, err := strconv.Atoi(inputs[0])
 	if err != nil {
 		fmt.Println(repository.ErrBadParamInput)
+		fmt.Println()
 		return err
 	}
 
 	data, err := repository.GetByID(id)
 	if err != nil {
 		fmt.Println(err)
+		fmt.Println()
 		return err
 	}
 
@@ -45,12 +70,14 @@ func DeleteQuestion(inputs []string) error {
 	id, err := strconv.Atoi(inputs[0])
 	if err != nil {
 		fmt.Println(repository.ErrBadParamInput)
+		fmt.Println()
 		return err
 	}
 
 	err = repository.Delete(id)
 	if err != nil {
 		fmt.Println(err)
+		fmt.Println()
 		return err
 	}
 
@@ -62,12 +89,14 @@ func CreateQuestion(inputs []string) error {
 	id, err := strconv.Atoi(inputs[0])
 	if err != nil {
 		fmt.Println(repository.ErrBadParamInput)
+		fmt.Println()
 		return err
 	}
 
 	ans, err := strconv.Atoi(inputs[2])
 	if err != nil {
 		fmt.Println(err)
+		fmt.Println()
 		return err
 	}
 
@@ -79,7 +108,8 @@ func CreateQuestion(inputs []string) error {
 
 	err = repository.Store(&qData)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Question no %d already existed!\n", qData.Id)
+		fmt.Println()
 		return err
 	}
 
@@ -93,12 +123,14 @@ func UpdateQuestion(inputs []string) error {
 	id, err := strconv.Atoi(inputs[0])
 	if err != nil {
 		fmt.Println(repository.ErrBadParamInput)
+		fmt.Println()
 		return err
 	}
 
 	ans, err := strconv.Atoi(inputs[2])
 	if err != nil {
 		fmt.Println(repository.ErrBadParamInput)
+		fmt.Println()
 		return err
 	}
 
@@ -111,6 +143,7 @@ func UpdateQuestion(inputs []string) error {
 	err = repository.Update(&qData)
 	if err != nil {
 		fmt.Println(err)
+		fmt.Println()
 		return err
 	}
 
@@ -121,19 +154,21 @@ func UpdateQuestion(inputs []string) error {
 }
 
 func AnswerQuestion(inputs []string) (string, error) {
+	msg := "Wrong Answer!"
 	id, err := strconv.Atoi(inputs[0])
 	if err != nil {
 		fmt.Println(repository.ErrBadParamInput)
-		return "", err
+		fmt.Println()
+		return msg, err
 	}
 
 	data, err := repository.GetByID(id)
 	if err != nil {
 		fmt.Println(err)
-		return "", err
+		fmt.Println()
+		return msg, err
 	}
 
-	msg := "Wrong Answer!"
 	ansStr := num2words.Convert(data.Answer)
 	if ansStr == inputs[1] {
 		msg = "Correct!"
