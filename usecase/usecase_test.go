@@ -107,7 +107,7 @@ var _ = Describe("Usecase", func() {
 
 	Describe("TestGetQuestionList", func() {
 		It("Question list work", func() {
-			err = usecase.QuestionList()
+			_, err = usecase.QuestionList()
 			Expect(err).To(BeNil())
 		})
 	})
@@ -121,7 +121,7 @@ var _ = Describe("Usecase", func() {
 
 		for _, tc := range cases {
 			It(tc.Message, func() {
-				err = usecase.QuestionSingle([]string{tc.Id})
+				_, err = usecase.QuestionSingle([]string{tc.Id})
 				result := err == nil
 				Expect(result).To(Equal(tc.Status))
 			})
@@ -137,7 +137,7 @@ var _ = Describe("Usecase", func() {
 
 		for _, tc := range cases {
 			It(tc.Message, func() {
-				err = usecase.DeleteQuestion([]string{tc.Id})
+				_, err = usecase.DeleteQuestion([]string{tc.Id})
 				result := err == nil
 				Expect(result).To(Equal(tc.Status))
 			})
@@ -170,7 +170,7 @@ var _ = Describe("Usecase", func() {
 			It(tc.Message, func() {
 				new_id := strconv.Itoa(tc.Quiz.Id)
 				new_answer := strconv.Itoa(tc.Quiz.Answer)
-				err = usecase.CreateQuestion([]string{new_id, tc.Quiz.Question, new_answer})
+				_, err = usecase.CreateQuestion([]string{new_id, tc.Quiz.Question, new_answer})
 				result := err == nil
 				Expect(result).To(Equal(tc.Status))
 			})
@@ -203,7 +203,7 @@ var _ = Describe("Usecase", func() {
 			It(tc.Message, func() {
 				new_id := strconv.Itoa(tc.Quiz.Id)
 				new_answer := strconv.Itoa(tc.Quiz.Answer)
-				err = usecase.UpdateQuestion([]string{new_id, tc.Quiz.Question, new_answer})
+				_, err = usecase.UpdateQuestion([]string{new_id, tc.Quiz.Question, new_answer})
 				result := err == nil
 				Expect(result).To(Equal(tc.Status))
 			})

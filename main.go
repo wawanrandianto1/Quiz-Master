@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"quiz_master/helper"
 	"quiz_master/usecase"
 )
 
@@ -20,26 +21,56 @@ func main() {
 		if len(command) > 0 {
 			switch command[0] {
 			case "create_question":
-				usecase.CreateQuestion(command[1:])
+				data, err := usecase.CreateQuestion(command[1:])
+				if err != nil {
+					helper.PrintError(err)
+				} else {
+					helper.PrintCreateQuestion(data)
+				}
 			case "update_question":
-				usecase.UpdateQuestion(command[1:])
+				data, err := usecase.UpdateQuestion(command[1:])
+				if err != nil {
+					helper.PrintError(err)
+				} else {
+					helper.PrintUpdateQuestion(data)
+				}
 			case "answer_question":
-				usecase.AnswerQuestion(command[1:])
+				message, err := usecase.AnswerQuestion(command[1:])
+				if err != nil {
+					helper.PrintError(err)
+				} else {
+					fmt.Printf("%v\n\n", message)
+				}
 			case "delete_question":
-				usecase.DeleteQuestion(command[1:])
+				id, err := usecase.DeleteQuestion(command[1:])
+				if err != nil {
+					helper.PrintError(err)
+				} else {
+					fmt.Printf("Question no %d was deleted!\n\n", id)
+				}
 			case "question":
-				usecase.QuestionSingle(command[1:])
+				data, err := usecase.QuestionSingle(command[1:])
+				if err != nil {
+					helper.PrintError(err)
+				} else {
+					helper.PrintQuestionSingle(data)
+				}
 			case "questions":
-				usecase.QuestionList()
+				data, err := usecase.QuestionList()
+				if err != nil {
+					helper.PrintError(err)
+				} else {
+					helper.PrintQuestionList(data)
+				}
 			case "help":
-				usecase.ShowHelp()
+				helper.PrintHelp()
 			case "exit":
 				i = 2
 			default:
-				fmt.Printf("Quiz Master: no such command '%v'\nSee 'help' for information on a specific command.\n\n", command[0])
+				helper.PrintUnknownCommand(command[0])
 			}
 		} else {
-			fmt.Printf("Quiz Master: no such command '%v'\nSee 'help' for information on a specific command.\n\n", text)
+			helper.PrintUnknownCommand(command[0])
 		}
 	}
 
