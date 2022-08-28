@@ -1,9 +1,8 @@
 # Quiz Master
 
-### Quiz master is simple game using golang interactive shell. 
+### Quiz master is simple quiz using golang interactive shell. 
 <br>
-<br>
- 
+
 ## Installation Instructions
 1. clone the repository
 
