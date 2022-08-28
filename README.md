@@ -46,6 +46,6 @@
 
 <br>
 
-# Example
+Example
 
 ![Screenshot](peek2.gif)
