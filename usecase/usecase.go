@@ -127,8 +127,9 @@ func AnswerQuestion(inputs []string) (string, error) {
 		return msg, err
 	}
 
+	inputStr := strings.ToLower(inputs[1])
 	ansStr := num2words.Convert(data.Answer)
-	if ansStr == inputs[1] {
+	if ansStr == inputStr {
 		msg = "Correct!"
 	} else {
 		ans, err := strconv.Atoi(inputs[1])
